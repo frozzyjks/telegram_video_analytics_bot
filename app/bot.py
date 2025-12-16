@@ -1,9 +1,9 @@
 import asyncio
 import os
-
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
 
+from db import get_connection
 from parser import parse_query
 from queries import (
     total_videos,
@@ -11,6 +11,9 @@ from queries import (
     videos_views_gt,
     sum_delta_views_by_day,
     videos_with_delta_by_day,
+    count_negative_views_deltas,
+    sum_views_by_month,
+    sum_delta_views_by_interval
 )
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -21,15 +24,22 @@ async def start_handler(message: types.Message):
 
 
 async def message_handler(message: types.Message):
+    text = message.text.strip()
+    print("Incoming message:", repr(text))
     try:
-        query = parse_query(message.text)
-        print("PARSED:", query)
+        query = parse_query(text)
+        print("Parsed query:", query)
+        #query = parse_query(message.text)
+
+        # Создаем подключение к базе один раз
+        conn = get_connection()
 
         if query["query_type"] == "TOTAL_VIDEOS":
-            result = total_videos()
+            result = total_videos(conn)
 
         elif query["query_type"] == "CREATOR_VIDEOS_BY_PERIOD":
             result = creator_videos_by_period(
+                conn,
                 query["creator_id"],
                 query["date_from"],
                 query["date_to"],
@@ -37,18 +47,30 @@ async def message_handler(message: types.Message):
 
         elif query["query_type"] == "VIDEOS_VIEWS_GT":
             result = videos_views_gt(
+                conn,
                 threshold=query["threshold"],
                 creator_id=query["creator_id"],
             )
 
         elif query["query_type"] == "SUM_DELTA_VIEWS_BY_DAY":
-            result = sum_delta_views_by_day(
-                query["date_from"],
-            )
+            result = sum_delta_views_by_day(conn, query["date_from"])
 
         elif query["query_type"] == "VIDEOS_WITH_DELTA_BY_DAY":
-            result = videos_with_delta_by_day(
-                query["date_from"],
+            result = videos_with_delta_by_day(conn, query["date_from"])
+
+        elif query["query_type"] == "NEGATIVE_VIEWS_DELTAS_COUNT":
+            result = count_negative_views_deltas(conn)
+
+        elif query["query_type"] == "SUM_VIEWS_BY_MONTH":
+            result = sum_views_by_month(conn, query["month"], query["year"])
+
+        elif query["query_type"] == "SUM_DELTA_VIEWS_BY_INTERVAL":
+            result = sum_delta_views_by_interval(
+                conn,
+                query["creator_id"],
+                query["date"],
+                query["start_time"],
+                query["end_time"]
             )
 
         else:
@@ -59,6 +81,12 @@ async def message_handler(message: types.Message):
     except Exception as e:
         print("ERROR:", e)
         await message.answer("Не удалось обработать запрос")
+
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
 
 
 async def main():

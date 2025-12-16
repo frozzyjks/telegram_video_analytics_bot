@@ -71,3 +71,12 @@ def count_videos_with_delta_by_day(conn, day):
             (day,),
         )
         return cur.fetchone()[0]
+
+def count_negative_views_deltas(conn):
+    with conn.cursor() as cur:
+        cur.execute("""
+            SELECT COUNT(*)
+            FROM video_snapshots
+            WHERE delta_views_count < 0
+        """)
+        return cur.fetchone()[0]

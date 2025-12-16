@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, time
 from db import get_connection
 
 def normalize_uuid(uuid_str: str) -> str:
@@ -13,13 +13,13 @@ def normalize_uuid(uuid_str: str) -> str:
     return uuid_str
 
 
-def total_videos() -> int:
+def total_videos(conn) -> int:
     with get_connection() as conn, conn.cursor() as cur:
         cur.execute("SELECT COUNT(*) FROM videos;")
         return cur.fetchone()[0]
 
 
-def creator_videos_by_period(
+def creator_videos_by_period(conn,
     creator_id: str,
     date_from: date,
     date_to: date,
@@ -37,7 +37,7 @@ def creator_videos_by_period(
         return cur.fetchone()[0]
 
 
-def videos_views_gt(threshold: int, creator_id: str | None = None):
+def videos_views_gt(conn, threshold: int, creator_id: str | None = None):
     conn = get_connection()
     cur = conn.cursor()
 
@@ -68,8 +68,20 @@ def videos_views_gt(threshold: int, creator_id: str | None = None):
     return result
 
 
+def sum_delta_views_by_interval(conn, creator_id: str, target_date: date, start_time: time, end_time: time) -> int:
+    with conn.cursor() as cur:
+        cur.execute("""
+            SELECT COALESCE(SUM(s.delta_views_count), 0)
+            FROM video_snapshots s
+            JOIN videos v ON v.id = s.video_id
+            WHERE v.creator_id = %s
+              AND DATE(s.created_at) = %s
+              AND s.created_at::time BETWEEN %s AND %s
+        """, (creator_id, target_date, start_time, end_time))
+        return cur.fetchone()[0]
 
-def sum_delta_views_by_day(target_date: date) -> int:
+
+def sum_delta_views_by_day(conn, target_date: date) -> int:
     with get_connection() as conn, conn.cursor() as cur:
         cur.execute(
             """
@@ -81,8 +93,7 @@ def sum_delta_views_by_day(target_date: date) -> int:
         )
         return cur.fetchone()[0]
 
-
-def videos_with_delta_by_day(target_date: date) -> int:
+def videos_with_delta_by_day(conn, target_date: date) -> int:
     with get_connection() as conn, conn.cursor() as cur:
         cur.execute(
             """
@@ -92,5 +103,29 @@ def videos_with_delta_by_day(target_date: date) -> int:
               AND delta_views_count > 0;
             """,
             (target_date,),
+        )
+        return cur.fetchone()[0]
+
+def count_negative_views_deltas(conn) -> int:
+    with get_connection() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT COUNT(*)
+            FROM video_snapshots
+            WHERE delta_views_count < 0;
+            """
+        )
+        return cur.fetchone()[0]
+
+def sum_views_by_month(conn, month: int, year: int) -> int:
+    with get_connection() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT COALESCE(SUM(views_count), 0)
+            FROM videos
+            WHERE EXTRACT(MONTH FROM video_created_at) = %s
+              AND EXTRACT(YEAR FROM video_created_at) = %s;
+            """,
+            (month, year)
         )
         return cur.fetchone()[0]

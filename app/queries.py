@@ -145,3 +145,33 @@ def count_creators_with_videos_views_gt(threshold: int) -> int:
             (threshold,)
         )
         return cur.fetchone()[0]
+
+def count_creator_published_days(creator_id: str, month: int, year: int) -> int:
+    with get_connection() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT COUNT(DISTINCT DATE(video_created_at))
+            FROM videos
+            WHERE creator_id = %s
+              AND EXTRACT(MONTH FROM video_created_at) = %s
+              AND EXTRACT(YEAR FROM video_created_at) = %s;
+            """,
+            (creator_id, month, year)
+        )
+
+def creator_active_days_in_month(creator_id: str, month: int, year: int) -> int:
+    creator_id = normalize_uuid(creator_id)
+    with get_connection() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT COUNT(DISTINCT DATE(video_created_at))
+            FROM videos
+            WHERE creator_id = %s
+            AND EXTRACT(MONTH FROM video_created_at) = %s
+            AND EXTRACT(YEAR FROM video_created_at) = %s;
+            """,
+            (creator_id, month, year)
+        )
+        return cur.fetchone()[0]
+
+        return cur.fetchone()[0]

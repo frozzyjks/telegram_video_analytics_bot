@@ -14,7 +14,9 @@ from queries import (
     count_negative_views_deltas,
     sum_views_by_month,
     sum_delta_views_by_interval,
-    count_creators_with_videos_views_gt
+    count_creators_with_videos_views_gt,
+    count_creator_published_days,
+    creator_active_days_in_month
 )
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -76,6 +78,19 @@ async def message_handler(message: types.Message):
                 query["date"],
                 query["start_time"],
                 query["end_time"]
+            )
+        elif query["query_type"] == "CREATOR_PUBLISHED_DAYS_COUNT":
+            result = count_creator_published_days(
+                query["creator_id"],
+                query["month"],
+                query["year"]
+            )
+
+        elif query["query_type"] == "CREATOR_ACTIVE_DAYS_IN_MONTH":
+            result = creator_active_days_in_month(
+                query["creator_id"],
+                query["month"],
+                query["year"]
             )
 
         else:

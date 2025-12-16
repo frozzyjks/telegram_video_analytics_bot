@@ -179,4 +179,20 @@ def parse_query(text: str) -> dict:
             "threshold": None
         }
 
+    # Количество дней публикаций креатора
+    if creator_id and "разных календарных днях" in text_lower and "публиковал" in text_lower:
+        # ожидаем, что месяц и год указаны
+        month_year = re.search(r"([а-яё]+)\s+(\d{4})", text_lower)
+        if month_year:
+            month_str, year_str = month_year.groups()
+            month = RU_MONTHS.get(month_str)
+            year = int(year_str)
+            if month:
+                return {
+                    "query_type": "CREATOR_ACTIVE_DAYS_IN_MONTH",
+                    "creator_id": creator_id,
+                    "month": month,
+                    "year": year
+                }
+
     raise ValueError("Не удалось распознать запрос")

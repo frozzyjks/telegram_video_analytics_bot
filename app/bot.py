@@ -23,7 +23,7 @@ async def start_handler(message: types.Message):
 async def message_handler(message: types.Message):
     try:
         query = parse_query(message.text)
-        print("PARSED:", query)  # можно потом удалить
+        print("PARSED:", query)
 
         if query["query_type"] == "TOTAL_VIDEOS":
             result = total_videos()

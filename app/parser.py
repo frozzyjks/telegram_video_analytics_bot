@@ -94,6 +94,13 @@ def parse_query(text: str) -> dict:
     month_year = extract_month_year(text_lower)
 
 
+    if "разных креаторов" in text_lower and "просмотр" in text_lower:
+        threshold = extract_threshold(text_lower)
+        return {
+            "query_type": "CREATORS_WITH_VIDEOS_VIEWS_GT",
+            "threshold": threshold
+        }
+
     if "на сколько просмотров суммарно выросли все видео" in text_lower and creator_id and start_time and end_time:
         return {
             "query_type": "SUM_DELTA_VIEWS_BY_INTERVAL",

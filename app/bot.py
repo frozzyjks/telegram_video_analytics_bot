@@ -13,7 +13,8 @@ from queries import (
     videos_with_delta_by_day,
     count_negative_views_deltas,
     sum_views_by_month,
-    sum_delta_views_by_interval
+    sum_delta_views_by_interval,
+    count_creators_with_videos_views_gt
 )
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -36,6 +37,10 @@ async def message_handler(message: types.Message):
 
         if query["query_type"] == "TOTAL_VIDEOS":
             result = total_videos(conn)
+
+        elif query["query_type"] == "CREATORS_WITH_VIDEOS_VIEWS_GT":
+
+            result = count_creators_with_videos_views_gt(query["threshold"])
 
         elif query["query_type"] == "CREATOR_VIDEOS_BY_PERIOD":
             result = creator_videos_by_period(

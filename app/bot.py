@@ -32,9 +32,6 @@ async def message_handler(message: types.Message):
     try:
         query = parse_query(text)
         print("Parsed query:", query)
-        #query = parse_query(message.text)
-
-        # Создаем подключение к базе один раз
         conn = get_connection()
 
         if query["query_type"] == "TOTAL_VIDEOS":

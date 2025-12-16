@@ -131,10 +131,6 @@ def sum_views_by_month(conn, month: int, year: int) -> int:
         return cur.fetchone()[0]
 
 def count_creators_with_videos_views_gt(threshold: int) -> int:
-    """
-    Считает количество уникальных креаторов, у которых есть хотя бы одно видео
-    с количеством просмотров больше threshold.
-    """
     with get_connection() as conn, conn.cursor() as cur:
         cur.execute(
             """

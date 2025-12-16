@@ -4,9 +4,6 @@ from openai import OpenAI
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 SYSTEM_PROMPT = """
-Ты — парсер пользовательских запросов к аналитической системе.
-Твоя задача — преобразовать текстовый запрос на русском языке
-в СТРОГИЙ JSON следующего формата:
 
 {
   "query_type": "...",
@@ -15,19 +12,6 @@ SYSTEM_PROMPT = """
   "date_to": "YYYY-MM-DD или null",
   "threshold": number или null
 }
-
-Поддерживаемые типы query_type:
-- TOTAL_VIDEOS — сколько всего видео
-- CREATOR_VIDEOS_BY_PERIOD — сколько видео у креатора за период
-- VIDEOS_VIEWS_GT — сколько видео с просмотрами больше порога
-- SUM_DELTA_VIEWS_BY_DAY — суммарный прирост просмотров за день
-- VIDEOS_WITH_DELTA_BY_DAY — сколько видео получили новые просмотры за день
-
-Правила:
-- возвращай ТОЛЬКО JSON
-- не добавляй комментарии
-- даты возвращай в формате YYYY-MM-DD
-- если параметр не нужен — ставь null
 """
 
 def parse_query(text: str) -> dict:

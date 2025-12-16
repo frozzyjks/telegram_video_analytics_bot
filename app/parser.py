@@ -80,9 +80,7 @@ def extract_date_range(text: str) -> tuple[date | None, date | None]:
 def extract_single_date(text: str) -> date | None:
     return parse_ru_date(text)
 
-# -----------------------------
-# main parser
-# -----------------------------
+
 def parse_query(text: str) -> dict:
     text_lower = text.lower()
     creator_id = extract_creator_id(text_lower)
@@ -119,7 +117,6 @@ def parse_query(text: str) -> dict:
             "year": year,
         }
 
-    # сколько всего видео
     if "сколько всего видео" in text_lower:
         return {
             "query_type": "TOTAL_VIDEOS",
@@ -129,7 +126,6 @@ def parse_query(text: str) -> dict:
             "threshold": None
         }
 
-    # видео креатора за период
     if creator_id and date_from and date_to:
         return {
             "query_type": "CREATOR_VIDEOS_BY_PERIOD",
@@ -139,7 +135,6 @@ def parse_query(text: str) -> dict:
             "threshold": None
         }
 
-    # видео с просмотрами больше X
     if threshold is not None and "просмотр" in text_lower:
         return {
             "query_type": "VIDEOS_VIEWS_GT",
@@ -149,7 +144,6 @@ def parse_query(text: str) -> dict:
             "threshold": threshold
         }
 
-    # суммарный прирост просмотров за день
     if "на сколько просмотров" in text_lower:
         return {
             "query_type": "SUM_DELTA_VIEWS_BY_DAY",
@@ -159,7 +153,6 @@ def parse_query(text: str) -> dict:
             "threshold": None
         }
 
-    # количество видео, получивших новые просмотры
     if "сколько" in text_lower and "видео" in text_lower and ("получили" in text_lower or "получали" in text_lower):
         return {
             "query_type": "VIDEOS_WITH_DELTA_BY_DAY",
@@ -169,7 +162,6 @@ def parse_query(text: str) -> dict:
             "threshold": None
         }
 
-    # количество отрицательных дельт просмотров
     if "замер" in text_lower and ("отрицательн" in text_lower or "стало меньше" in text_lower) and "просмотр" in text_lower:
         return {
             "query_type": "NEGATIVE_VIEWS_DELTAS_COUNT",
@@ -179,9 +171,7 @@ def parse_query(text: str) -> dict:
             "threshold": None
         }
 
-    # Количество дней публикаций креатора
     if creator_id and "разных календарных днях" in text_lower and "публиковал" in text_lower:
-        # ожидаем, что месяц и год указаны
         month_year = re.search(r"([а-яё]+)\s+(\d{4})", text_lower)
         if month_year:
             month_str, year_str = month_year.groups()
